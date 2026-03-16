@@ -11,7 +11,12 @@
 # Backlog:
 #
 # Implement a columns separator, column items and expanders to the Question Editor
-
+#
+# Credits:
+#
+#   - Google Drive API
+#   - https://www.merge.dev/blog/google-drive-api-python#:~:text=You%20can%20easily%20adapt%20this,needed%20for%20your%20use%20case.
+#
 ############################################################################################################################################################################################################################################################################################
 
 # Total rounds for the game
@@ -36,8 +41,6 @@ from io import StringIO
 ############################################################################################################################################################################################################################################################################################
 
 # Program Start
-
-# import cloudSave
 
 st.set_page_config("Forge Scouting", layout="wide", page_icon="icon.png", initial_sidebar_state="expanded")
 pd.set_option("display.max_rows", None, "display.max_columns", None)
@@ -84,7 +87,7 @@ def toDict(df: pd.DataFrame):
 
     return data
 
-@st.cache_data()
+@st.cache_data
 def cleanData(data: dict):
 
     newdata = {}
