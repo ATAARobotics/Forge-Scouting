@@ -1,16 +1,7 @@
+supabase
 streamlit
-google-api-python-client
-google-auth
-google-auth-httplib2
-google-auth-oauthlib
-google_auth_oauthlib
-google.oauth2
-google.auth
-googleapiclient
-drive_service
 scikit-learn
 seaborn
 matplotlib
 pandas
 numpy
-io

@@ -14,8 +14,8 @@
 #
 # Credits:
 #
-#   - Google Drive API
-#   - https://www.merge.dev/blog/google-drive-api-python#:~:text=You%20can%20easily%20adapt%20this,needed%20for%20your%20use%20case.
+#   - Supabase API
+#   - https://docs.streamlit.io/develop/tutorials/databases/supabase
 #
 ############################################################################################################################################################################################################################################################################################
 
@@ -46,7 +46,9 @@ st.set_page_config("Forge Scouting", layout="wide", page_icon="icon.png", initia
 pd.set_option("display.max_rows", None, "display.max_columns", None)
 warnings.filterwarnings("ignore")
 
-adminpassword = "44212025"
+import classified
+
+adminpassword = classified.adminpassword
 sidebar = st.sidebar
 theme = """
 [theme]
