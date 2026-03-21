@@ -1,16 +1,24 @@
 # Current Tasks:
 #
+# Add SupaBase table compatibility
 # Add duplicate entry replacement (Pit - if Team No. are the same, Match - if Round No. & Team No. are the same)
 # Fix issue with pit data question insertion
 # Fix premature question additions in the question editor
 # Finish Data Editor
-# Implement SupaBase compatibility
 # Replace Visual Analysis with a Data Analysis page, that has both visual analysis and data prediction functionalities
 # Implement Data Comparison functionality
 #
 # Backlog:
 #
 # Implement a columns separator, column items and expanders to the Question Editor
+#
+# TO UPDATE QUESTIONS:
+# 
+# 1. Update questions on the scouting app
+# 2. Download CSV file with the data
+# 3. Delete existing table on Supabase
+# 4. Add new table on Supabase - upload the CSV flie during table creation
+# 5. Save changes
 #
 # Credits:
 #
@@ -28,14 +36,17 @@ import streamlit as st
 import os
 import time
 import warnings
+from io import StringIO
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sn
 
-from sklearn.linear_model import LinearRegression as lreg
-from io import StringIO
+from supabase import create_client, Client
+
+# Currently unused
+# from sklearn.linear_model import LinearRegression as lreg
 
 
 ############################################################################################################################################################################################################################################################################################
@@ -57,6 +68,7 @@ primaryColor="#ff3636"
 backgroundColor="#0e0e0e"
 secondaryBackgroundColor="#1e2029"
 """
+
 
 def addLineGap(numoflines: int):
     for i in range(numoflines):
@@ -149,6 +161,29 @@ def savedata(pitdata: dict, matchdata: dict):
         print("Match data saved successfully.")
     except:
         print("There was an error in saving match data.")
+
+# Supabase Connection
+@st.cache_resource
+def sbconnection(url, key):
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
+    return create_client(url, key)
+
+@st.cache_data(ttl=300)
+def query():
+    return supabase.table("matchdata").select("*").execute()
+
+sburl = st.secrets["SUPABASE_URL"]
+sbkey = st.secrets["SUPABASE_KEY"]
+supabase = sbconnection(sburl, sbkey)
+
+url: str = os.environ.get(sburl)
+key: str = os.environ.get(sbkey)
+supabase: Client = create_client(sburl, sbkey)
+
+data = query()
+
+st.write(data.data)
 
 if ["pitq", "matchq", "pitdata", "matchdata", "robotphotos", "admin"] not in st.session_state:
     
