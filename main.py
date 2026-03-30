@@ -12,14 +12,6 @@
 #
 # Implement a columns separator, column items and expanders to the Question Editor
 #
-# TO UPDATE QUESTIONS:
-# 
-# 1. Update questions on the scouting app
-# 2. Download CSV file with the data
-# 3. Delete existing table on Supabase
-# 4. Add new table on Supabase - upload the CSV flie during table creation
-# 5. Save changes
-#
 # Credits:
 #
 #   - Supabase API
@@ -45,7 +37,7 @@ import seaborn as sn
 
 from supabase import create_client, Client
 
-# Currently unused
+# UNUSED
 # from sklearn.linear_model import LinearRegression as lreg
 
 
@@ -111,6 +103,9 @@ def cleanData(data: dict):
         if "Unnamed: " != col[:9]:
             newdata[col] = data[col]
 
+        if type(newdata[col]) != list:
+            newdata[col] = [newdata[col]]
+
     return newdata
 
 def gitpull(repo: str = None):
@@ -170,8 +165,11 @@ def sbconnection(url, key):
     return create_client(url, key)
 
 @st.cache_data(ttl=300)
-def query():
-    return supabase.table("matchdata").select("*").execute()
+def query(tablename, getData=True):
+    if getData:
+        return supabase.table(tablename).select("*").execute().data
+    else:
+        return supabase.table(tablename).select("*").execute()
 
 sburl = st.secrets["SUPABASE_URL"]
 sbkey = st.secrets["SUPABASE_KEY"]
@@ -181,10 +179,6 @@ url: str = os.environ.get(sburl)
 key: str = os.environ.get(sbkey)
 supabase: Client = create_client(sburl, sbkey)
 
-data = query()
-
-st.write(data.data)
-
 if ["pitq", "matchq", "pitdata", "matchdata", "robotphotos", "admin"] not in st.session_state:
     
     import questions
@@ -193,7 +187,10 @@ if ["pitq", "matchq", "pitdata", "matchdata", "robotphotos", "admin"] not in st.
     st.session_state.matchq = questions.matchq
 
     st.session_state.pitdata = toDict(pd.read_csv("pitdata.csv"))
-    st.session_state.matchdata = toDict(pd.read_csv("matchdata.csv"))
+    #st.session_state.matchdata = toDict(pd.read_csv("matchdata.csv"))
+
+    #st.session_state.pitdata = query("pitdata")[0]
+    st.session_state.matchdata = query("matchdata")[0]
 
     st.session_state.pitdata = cleanData(st.session_state.pitdata)
     st.session_state.matchdata = cleanData(st.session_state.matchdata)
@@ -201,6 +198,9 @@ if ["pitq", "matchq", "pitdata", "matchdata", "robotphotos", "admin"] not in st.
     st.session_state.robotphotos = {}
     
     st.session_state.admin = False
+
+#st.session_state.pitdata = query("pitdata")[0]
+st.session_state.matchdata = query("matchdata")[0]
 
 if st.session_state.pitdata == {}:
     for i in st.session_state.pitq:
@@ -255,8 +255,6 @@ if selectedpage == ":blue[**Home**]":
     st.write("---")
 
 else:
-
-
 
     st.title(selectedpage)
     st.write("---")
@@ -474,9 +472,11 @@ else:
                         cols.append(col)
 
         for key, col in zip(data, cols):
-            df[col] = data[key]
+            if type(data[key]) == list:
+                df[col] = data[key]
+            else:
+                df[col] = [data[key]]
 
-            
         for i in df.columns:
 
             if i == "Round No." or i == "Team No.":
@@ -678,7 +678,10 @@ else:
             st.image(st.session_state.robotphotos[teamno], teamno)
 
     elif selectedpage == "**Data Comparison**":
-            
+
+        st.title("TO BE UPDATED")
+
+        code = '''
         viewdata = sidebar.radio("**Which data would you like to analyze?**", ["Pit Data", "Match Data"])
         compmode = sidebar.radio("**Comparison Mode:**", ["Statistics", "Table of Averages"])
         criteria = sidebar.expander("**Data Selection**")
@@ -864,6 +867,7 @@ else:
                     df[col] = compdata[col]
 
                 st.dataframe(df, use_container_width=True, hide_index=True)           
+        '''
 
     elif selectedpage == "**Visual Analysis**":
 
@@ -1097,6 +1101,18 @@ else:
                     savedata(st.session_state.pitdata, st.session_state.matchdata)
 
     elif selectedpage == "**Question Editor (:red[OFFLINE ONLY])**":
+
+        instructions = """
+        1. **Update the questions here.**
+        2. **Download** CSV file with the data.
+        3. **:red[Delete]** existing table on **:green[Supabase]**.
+        4. Add new table on **:green[Supabase]** - **upload** the CSV flie during table creation.
+        5. **Save** your changes.
+        """
+
+        st.header("To Update Questions:")
+        st.write(instructions)
+        st.write("---")
 
         import questions
         st.session_state.pitq = questions.pitq
@@ -1703,6 +1719,8 @@ if st.session_state.admin:
     savemsg = exgit.text_input("**Commit Message:**", "Update GitHub", max_chars=200)
 
     if exgit.button("**Push to :blue[GitHub] (:red[OFFLINE ONLY])**", use_container_width=True):
+        st.session_state.pitdata = cleanData(st.session_state.pitdata)
+        st.session_state.matchdata = cleanData(st.session_state.matchdata)
         savedata(st.session_state.pitdata, st.session_state.matchdata)
         gitpush(savemsg)
 
